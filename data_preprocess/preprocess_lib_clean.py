@@ -341,6 +341,26 @@ def image_gen(image_name, rotation):
         print('Error!!! No rotation data specified. Default image Loaded. ')
     
     return rotate_img  
+
+def has_ship(encoded_pixels):
+    hs = [0 if pd.isna(n) else 1 for n in tqdm(encoded_pixels)]
+    return hs
+
+def flow_from_dataframe(img_data_gen, in_df, path_col, y_col, **dflow_args):
+    base_dir = os.path.dirname(in_df[path_col].values[0])
+    print('## Ignore next message from keras, values are replaced anyways')
+    df_gen = img_data_gen.flow_from_directory(base_dir,
+                                     class_mode = 'sparse',
+                                    **dflow_args)
+    df_gen.filenames = in_df[path_col].values
+    df_gen.classes = np.stack(in_df[y_col].values)
+    df_gen.samples = in_df.shape[0]
+    df_gen.n = in_df.shape[0]
+    df_gen._set_index_array()
+    df_gen.directory = '' # since we have the full path
+    print('Reinserting dataframe: {} images'.format(in_df.shape[0]))
+    return df_gen
+
     
 """
     Implementation from  https://github.com/ternaus/robot-surgery-segmentation
