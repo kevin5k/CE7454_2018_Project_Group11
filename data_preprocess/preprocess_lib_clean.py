@@ -8,6 +8,7 @@ import matplotlib.image as mpimg
 import pandas as pd
 from skimage.data import imread
 from scipy.misc import imread
+from tqdm import tqdm
 import torchvision
 import torchvision.transforms as transforms
 import os.path as osp
@@ -342,6 +343,7 @@ def image_gen(image_name, rotation):
     
     return rotate_img  
 
+
 def has_ship(encoded_pixels):
     hs = [0 if pd.isna(n) else 1 for n in tqdm(encoded_pixels)]
     return hs
@@ -361,7 +363,7 @@ def flow_from_dataframe(img_data_gen, in_df, path_col, y_col, **dflow_args):
     print('Reinserting dataframe: {} images'.format(in_df.shape[0]))
     return df_gen
 
-    
+
 """
     Implementation from  https://github.com/ternaus/robot-surgery-segmentation
 """
