@@ -21,7 +21,6 @@ from model.utils.net_utils import weights_normal_init, save_net, load_net, \
       adjust_learning_rate, save_checkpoint, clip_gradient
 
 from model.faster_rcnn.vgg16 import vgg16
-from model.faster_rcnn.resnet import resnet
 
 from data_loader.ships_loader import create_imdb, ships_dataset
 
@@ -98,6 +97,7 @@ def parse_args():
 if __name__ == '__main__':
 
   args = parse_args()
+  args.cuda = True
 
   print('Called with args:')
   print(args)
@@ -127,7 +127,7 @@ if __name__ == '__main__':
   if not os.path.exists(models_dir):
     os.makedirs(models_dir)
 
-  imdb = create_imdb()
+  imdb = create_imdb("../dataset/bbox_dictionary.csv", "../dataset/train")
   dataset = ships_dataset(imdb)
   dataloader = torch.utils.data.DataLoader(dataset, shuffle=True, batch_size=1)
   train_size = len(imdb)
@@ -259,7 +259,7 @@ if __name__ == '__main__':
     save_name = os.path.join(models_dir, 'faster_rcnn_{}_{}_{}.pth'.format(args.session, epoch, step))
     save_checkpoint({
       'session': args.session,
-      'epoch': epoch + 1,
+      'epoch': epoch,
       'model': fasterRCNN.module.state_dict() if args.mGPUs else fasterRCNN.state_dict(),
       'optimizer': optimizer.state_dict(),
       'pooling_mode': cfg.POOLING_MODE,

@@ -10,6 +10,7 @@ import signal, os
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt 
+from model import VGG, ResNet
 
 device= torch.device("cuda")
 #device= torch.device("cpu")
@@ -39,130 +40,23 @@ args = parser.parse_args()
 args.eval == True
 args.train == False
 
-class VGG(nn.Module):
-
-    def __init__(self):
-
-        super(VGG, self).__init__()
-
-        # block 1:         3 x 32 x 32 --> 64 x 16 x 16        
-        self.conv1a = nn.Conv2d(3,   64,  kernel_size=3, padding=1 )
-        self.conv1b = nn.Conv2d(64,  64,  kernel_size=3, padding=1 )
-        self.bn1a = nn.BatchNorm2d(64)
-        self.bn1b = nn.BatchNorm2d(64)
-        self.pool1  = nn.MaxPool2d(2,2)
-
-        # block 2:         64 x 16 x 16 --> 128 x 8 x 8
-        self.conv2a = nn.Conv2d(64,  128, kernel_size=3, padding=1 )
-        self.conv2b = nn.Conv2d(128, 128, kernel_size=3, padding=1 )
-        self.bn2a = nn.BatchNorm2d(128)
-        self.bn2b = nn.BatchNorm2d(128)
-        self.pool2  = nn.MaxPool2d(2,2)
-
-        # block 3:         128 x 8 x 8 --> 256 x 4 x 4        
-        self.conv3a = nn.Conv2d(128, 256, kernel_size=3, padding=1 )
-        self.conv3b = nn.Conv2d(256, 256, kernel_size=3, padding=1 )
-        self.bn3a = nn.BatchNorm2d(256)
-        self.bn3b = nn.BatchNorm2d(256)
-        self.pool3  = nn.MaxPool2d(2,2)
-        
-        #block 4:          256 x 4 x 4 --> 512 x 2 x 2
-        self.conv4a = nn.Conv2d(256, 512, kernel_size=3, padding=1 )
-        self.bn4a = nn.BatchNorm2d(512)
-        self.pool4  = nn.MaxPool2d(2,2)
-
-        self.conv5a = nn.Conv2d(512, 512, kernel_size=3, padding=1 )
-        self.bn5a = nn.BatchNorm2d(512)
-        self.pool5  = nn.MaxPool2d(2,2)
-
-        self.conv6a = nn.Conv2d(512, 512, kernel_size=3, padding=1 )
-        self.bn6a = nn.BatchNorm2d(512)
-        self.pool6  = nn.MaxPool2d(2,2)
-
-        # linear layers:   512 x 2 x 2 --> 2048 --> 4096 --> 4096 --> 10
-        self.linear1 = nn.Linear(9 * 9 * 512, 4096)
-        self.linear2 = nn.Linear(4096,4096)
-        self.linear3 = nn.Linear(4096, 2)
-
-
-    def forward(self, x):
-
-        # block 1:         3 x 32 x 32 --> 64 x 16 x 16
-        x = self.conv1a(x)
-        x = self.bn1a(x)
-        x = F.relu(x)
-        x = self.conv1b(x)
-        x = self.bn1b(x)
-        x = F.relu(x)
-        x = self.pool1(x)
-
-        # block 2:         64 x 16 x 16 --> 128 x 8 x 8
-        x = self.conv2a(x)
-        x = self.bn2a(x)
-        x = F.relu(x)
-        x = self.conv2b(x)
-        x = self.bn2b(x)
-        x = F.relu(x)
-        x = self.pool2(x)
-
-        # block 3:         128 x 8 x 8 --> 256 x 4 x 4
-        x = self.conv3a(x)
-        x = self.bn3a(x)
-        x = F.relu(x)
-        x = self.conv3b(x)
-        x = self.bn3b(x)
-        x = F.relu(x)
-        x = self.pool3(x)
-
-        #block 4:          256 x 4 x 4 --> 512 x 2 x 2
-        x = self.conv4a(x)
-        x = self.bn4a(x)
-        x = F.relu(x)
-        x = self.pool4(x)
-
-        #block 5:          256 x 4 x 4 --> 512 x 2 x 2
-        x = self.conv5a(x)
-        x = self.bn5a(x)
-        x = F.relu(x)
-        x = self.pool5(x)
-
-        #block 6:          256 x 4 x 4 --> 512 x 2 x 2
-        x = self.conv6a(x)
-        x = self.bn6a(x)
-        x = F.relu(x)
-        x = self.pool6(x)
-
-        # linear layers:   512 x 2 x 2 --> 2048 --> 4096 --> 4096 --> 10
-        x = x.view(-1, 9 * 9 * 512)
-        x = self.linear1(x)
-        x = F.relu(x)
-        x = self.linear2(x)
-        x = F.relu(x)
-        x = self.linear3(x) 
-        
-        return x
-
-
-# ### Build the net. How many parameters in total? (the one layer net had 30,000 parameters)
-
-# In[7]:
-
 my_lr=0.002 
 net = VGG()
+#net = ResNet()
 start_epoch = 1
 start_step = 1
 
 if args.resume or args.demo or args.eval:
-    #net.load_state_dict(torch.load("./saved_model.pth"))
     checkpoint = torch.load("../../models/base/vgg_base_model.pth")
     start_epoch = checkpoint['epoch']
     net.load_state_dict(checkpoint['model'])
     my_lr = checkpoint['lr']
     start_step = checkpoint['step']
-
+    lost = checkpoint['lost']
+    error = checkpoint['error']
+    print(lost)       
 
 print(net)
-
 
 net = net.to(device)
 
@@ -183,7 +77,7 @@ image_dir = ""
 if args.demo or args.eval:
     file_dir = "../../dataset/input/test_ship_segmentations.csv"
     image_dir = "../../dataset/test"
-elif args.train:
+elif args.train or args.resume:
     file_dir = "../../dataset/input/train_ship_segmentations.csv"
     image_dir = "../../dataset/train"
 else:
@@ -192,7 +86,7 @@ else:
 
 imdb = create_imdb(file_dir, image_dir)
 dataset = ships_dataset(imdb)
-bs = 4
+bs = 2
 
 if args.demo:
     dataloader = torch.utils.data.DataLoader(dataset, batch_size = 1, shuffle=True)
@@ -204,11 +98,9 @@ if args.demo:
         prob = F.softmax(scores)
         im = cv2.imread(image_files[0])
         values, indices = torch.max(prob, 1)
-        #print(indices)
-        #print(labels)
         text = "Predict: " + ("has ship" if indices[0] == 1 else "no ship") + "   GT: " + ("has ship" if labels[0] == 1 else "no ship")
         cv2.putText(im, text, (50, 30), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 255, 255), 3, lineType=cv2.LINE_AA)
-        plt.imshow(im)
+        plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         plt.show()
     exit()
 
@@ -254,15 +146,11 @@ for epoch in range(start_epoch, 20):
     optimizer=torch.optim.SGD( net.parameters() , lr=my_lr )
         
     # set the running quatities to zero at the beginning of the epoch
-    # running_loss=0
-    # running_error=0
-    # num_batches=0
+    running_loss=0
+    running_error=0
+    num_batches=0
  
     for count in range(start_step, step + 1):
-        # set the running quatities to zero at the beginning of the epoch
-        running_loss=0
-        running_error=0
-        num_batches=0
 
         # Set the gradients to zeros
         optimizer.zero_grad()

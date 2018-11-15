@@ -9,6 +9,7 @@ from model.roi_crop.functions.roi_crop import RoICropFunction
 import cv2
 import pdb
 import random
+from model.rpn.bbox_transform import bbox_overlaps
 
 def save_net(fname, net):
     import h5py
@@ -50,6 +51,7 @@ def clip_gradient(model, clip_norm):
 
 def vis_detections(im, class_name, dets, thresh=0.8, gt_boxes = None, num_boxes = 0):
     """Visual debugging of detections."""
+
     for i in range(np.minimum(10, dets.shape[0])):
         bbox = tuple(int(np.round(x)) for x in dets[i, :4])
         score = dets[i, -1]
@@ -226,3 +228,22 @@ def compare_grid_sample():
     pdb.set_trace()
 
     delta = (grad_input_off.data - grad_input_stn).sum()
+
+
+def Precision_Recall(dets, thresh, gt_boxes, num_boxes):
+    bbox_list = []
+    for i in range(np.minimum(10, dets.shape[0])):
+        bbox = [int(np.round(x)) for x in dets[i, :4]]
+        score = dets[i, -1]
+        if score > thresh:
+            bbox_list.append(bbox)
+    predict_bbox = torch.Tensor(bbox_list)
+    target_boxes = gt_boxes[0].cpu()[:num_boxes, :4]
+    TP = 0
+    if(target_boxes.size(0) > 0 and predict_bbox.size(0) > 0):
+        overlaps = bbox_overlaps(predict_bbox, target_boxes)
+        iou, argmax = torch.max(overlaps, 1)
+        TP = torch.sum(iou.gt(0.5)).item()
+
+    return predict_bbox.size(0), TP
+

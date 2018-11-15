@@ -343,7 +343,7 @@ if __name__ == '__main__':
             keep = nms(cls_dets, cfg.TEST.NMS, force_cpu=not cfg.USE_GPU_NMS)
             cls_dets = cls_dets[keep.view(-1).long()]
             if vis:
-              im2show = vis_detections(im2show, ships_classes[j], cls_dets.cpu().numpy(), 0.5)
+              im2show = vis_detections(im2show, ships_classes[j], cls_dets.cpu().numpy(), 0.7)
               im2show = cv2.cvtColor(im2show, cv2.COLOR_BGR2RGB)
 
       misc_toc = time.time()

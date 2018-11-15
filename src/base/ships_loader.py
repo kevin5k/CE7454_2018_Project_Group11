@@ -83,39 +83,3 @@ def get_error( scores , labels ):
     
     return 1-num_matches.float()/bs 
 
-if __name__ == "__main__":
-    imdb = create_imdb()
-    dataset = ships_dataset(imdb)
-    bs = 20
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=bs, shuffle=True,num_workers = 8)
-    data_iter = iter(dataloader)
-    train_size = int(len(imdb) / bs)
-    for step in range(train_size):
-        data, label = next(data_iter)
-
-
-'''
-for index, row in bboxs_df.iterrows():
-    #print (row["ID"], row["bbox_list"])
-    image = row["ID"]
-    bboxs = row["bbox_list"].strip("[]").replace("(", "").replace(")", "").split(",")
-    bboxs = [int(i) for i in bboxs]
-    bboxs = np.array(bboxs).reshape(-1, 4)
-    im = cv2.imread(train_image_dir + '/' + image)
-    im_dict = {}
-    im_dict["ID"] = image
-    im_dict["gt_boxs"] = bboxs
-    imdb.append(im_dict)
-    print(im_dict)
-    #img = cv2.cvtColor(img, cv2.COL OR_BGR2RGB)
-  
-    for bbox in bboxes:
-        print('Found bbox', bbox)
-        cv2.rectangle(img, (bbox[1], bbox[0]), (bbox[3], bbox[2]), (255, 0, 0), 2)
-    plt.imshow(img)
-    plt.pause(0.0001)
-    if plt.waitforbuttonpress() == None:
-        break
-'''
-
-

@@ -8,10 +8,10 @@ import torch.utils.data as data
 import torch
 from scipy.misc import imread
 
-def create_imdb():
+def create_imdb(file_name, data_dir):
     imdb = []
-    bboxes_df = pd.read_csv("data_loader/bbox_dictionary.csv")
-    train_image_dir = "../dataset/train"
+    bboxes_df = pd.read_csv(file_name)
+    image_dir = data_dir
     for index, row in bboxes_df.iterrows():
         image = row["ID"]
         bboxes = row["bbox_list"].strip("[]").replace("(", "").replace(")", "").split(",")
@@ -26,10 +26,11 @@ def create_imdb():
         bboxes[:, 3] = tmp
 
         im_dict = {}
-        im_dict["ID"] = train_image_dir + "/" + image
+        im_dict["ID"] = image_dir + "/" + image
         im_dict["gt_boxes"] = bboxes
         imdb.append(im_dict)
     return imdb
+
 
 def prepare_images(img):
     #Mean subtract and scale an image
@@ -106,67 +107,3 @@ class ships_dataset(data.Dataset):
 
   def __len__(self):
     return len(self._imdb)
-
-def write_plk():
-    bboxs_df = pd.read_csv("./bbox_dictionary.csv")
-    ship_dir = './kaggle'
-    train_image_dir = os.path.join(ship_dir, 'train')
-    im_dict = {}
-    for index, row in bboxs_df.iterrows():
-        image = row["ID"]
-        bboxs = row["bbox_list"].strip("[]").replace("(", "").replace(")", "").split(",")
-        bboxs = [int(i) for i in bboxs]
-        bboxs = np.array(bboxs).reshape(-1, 4)
-
-        im_dict = {}
-        im_dict["ID"] = image
-        im_dict["gt_boxs"] = bboxs
-        imdb.append(im_dict)
-    print(index)
-    pickle_out = open("ships.pkl", "wb")
-    pickle.dump(imdb, pickle_out)
-    pickle_out.close()
-'''
-im_data = torch.FloatTensor(1)
-im_info = torch.FloatTensor(1)
-num_boxes = torch.LongTensor(1)
-gt_boxes = torch.FloatTensor(1)
-
-if __name__ == "__main__":
-    imdb = create_imdb()
-    dataset = ships_dataset(imdb)
-    dataloader = torch.utils.data.DataLoader(dataset, batch_size=1)
-    data_iter = iter(dataloader)
-    train_size = len(imdb)
-    for step in range(train_size):
-        data = next(data_iter)
-        im_data.data.resize_(data[0].size()).copy_(data[0])
-        im_info.data.resize_(data[1].size()).copy_(data[1])
-        gt_boxes.data.resize_(data[2].size()).copy_(data[2])
-        num_boxes.data.resize_(data[3].size()).copy_(data[3])
-'''
-'''
-for index, row in bboxs_df.iterrows():
-    #print (row["ID"], row["bbox_list"])
-    image = row["ID"]
-    bboxs = row["bbox_list"].strip("[]").replace("(", "").replace(")", "").split(",")
-    bboxs = [int(i) for i in bboxs]
-    bboxs = np.array(bboxs).reshape(-1, 4)
-    im = cv2.imread(train_image_dir + '/' + image)
-    im_dict = {}
-    im_dict["ID"] = image
-    im_dict["gt_boxs"] = bboxs
-    imdb.append(im_dict)
-    print(im_dict)
-    #img = cv2.cvtColor(img, cv2.COL OR_BGR2RGB)
-  
-    for bbox in bboxes:
-        print('Found bbox', bbox)
-        cv2.rectangle(img, (bbox[1], bbox[0]), (bbox[3], bbox[2]), (255, 0, 0), 2)
-    plt.imshow(img)
-    plt.pause(0.0001)
-    if plt.waitforbuttonpress() == None:
-        break
-'''
-
-

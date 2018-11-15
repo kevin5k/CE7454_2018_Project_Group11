@@ -9,7 +9,7 @@ from skimage.segmentation import mark_boundaries
 from skimage.measure import label, regionprops
 from skimage.util import montage2d as montage
 montage_rgb = lambda x: np.stack([montage(x[:, :, :, i]) for i in range(x.shape[3])], -1)
-ship_dir = './'
+ship_dir = '../../dataset/'
 train_image_dir = os.path.join(ship_dir, 'train')
 test_image_dir = os.path.join(ship_dir, 'test')
 
@@ -56,8 +56,8 @@ def masks_as_image(in_mask_list, all_masks=None):
     return np.expand_dims(all_masks, -1)
 
 
-masks = pd.read_csv(os.path.join('./input/',
-                                 'train_ship_segmentations.csv'))
+masks = pd.read_csv(os.path.join('../../dataset/input/',
+                                 'test_ship_segmentations.csv'))
 print(masks.shape[0], 'masks found')
 print(masks['ImageId'].value_counts().shape[0])
 masks.head()
@@ -123,7 +123,7 @@ dict_images = list(bboxes_dict.keys())
 for i in range(5):
     image = dict_images[10+i]
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize = (15, 5))
-    img_0 = cv2.imread(train_image_dir+'/' + image)
+    img_0 = cv2.imread(test_image_dir+'/' + image)
     rle_0 = masks.query('ImageId=="'+image+'"')['EncodedPixels']
     mask_0 = masks_as_image(rle_0)
     img_1 = img_0.copy()
@@ -142,4 +142,4 @@ bboxes_df = pd.DataFrame([bboxes_dict])
 bboxes_df = bboxes_df.transpose()
 bboxes_df.columns = ['bbox_list']
 bboxes_df.head()
-bboxes_df.to_csv('bbox_dictionary.csv')
+bboxes_df.to_csv('bbox_test_dictionary.csv')

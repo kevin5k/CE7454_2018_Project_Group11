@@ -22,10 +22,9 @@ from model.utils.config import cfg, cfg_from_file, cfg_from_list, get_output_dir
 from model.rpn.bbox_transform import clip_boxes
 from model.nms.nms_wrapper import nms
 from model.rpn.bbox_transform import bbox_transform_inv
-from model.utils.net_utils import save_net, load_net, vis_detections
+from model.utils.net_utils import save_net, load_net, vis_detections, Precision_Recall
 from model.faster_rcnn.vgg16 import vgg16
-from model.faster_rcnn.resnet import resnet
-
+import matplotlib.pyplot as plt
 from data_loader.ships_loader import create_imdb, ships_dataset
 
 
@@ -59,7 +58,7 @@ def parse_args():
                       default=1, type=int)
   parser.add_argument('--checkepoch', dest='checkepoch',
                       help='checkepoch to load network',
-                      default=1, type=int)
+                      default=5, type=int)
   parser.add_argument('--checkpoint', dest='checkpoint',
                       help='checkpoint to load network',
                       default=29069, type=int)
@@ -173,7 +172,7 @@ if __name__ == '__main__':
   else:
     thresh = 0.0
 
-  imdb = create_imdb()
+  imdb = create_imdb("../dataset/bbox_test_dictionary.csv", "../dataset/test")
   num_images = len(imdb)
   dataset = ships_dataset(imdb)
   dataloader = torch.utils.data.DataLoader(dataset, shuffle=True, batch_size=1)
@@ -186,6 +185,12 @@ if __name__ == '__main__':
 
   fasterRCNN.eval()
   empty_array = np.transpose(np.array([[],[],[],[],[]]), (1,0))
+
+  total_pred_box = 0
+  total_gt_box = 0
+  total_TP = 0
+
+  if(vis): num_images = 6
   for i in range(num_images):
 
       data = next(data_iter)
@@ -224,7 +229,7 @@ if __name__ == '__main__':
 
       pred_boxes /= data[1][0][2].item()
       gt_vis_boxes = gt_boxes / data[1][0][2].item()
-
+      gt_vis_boxes[0, :, -1] = gt_boxes[0, :, -1]
       scores = scores.squeeze()
       pred_boxes = pred_boxes.squeeze()
       det_toc = time.time()
@@ -251,10 +256,17 @@ if __name__ == '__main__':
             keep = nms(cls_dets, cfg.TEST.NMS)
             cls_dets = cls_dets[keep.view(-1).long()]
             if vis:
-              im2show = vis_detections(im2show, ships_classes[j], cls_dets.cpu().numpy(), 0.4, gt_vis_boxes, num_boxes)
+              im2show = vis_detections(im2show, ships_classes[j], cls_dets.cpu().numpy(), 0.7, gt_vis_boxes, num_boxes)
+            else:
+              num_pred_box, TP = Precision_Recall(cls_dets.cpu().numpy(), 0.6, gt_vis_boxes, num_boxes)
+              total_gt_box += num_boxes.item()
+              total_pred_box += num_pred_box
+              total_TP += TP
+
             all_boxes[j][i] = cls_dets.cpu().numpy()
           else:
             all_boxes[j][i] = empty_array
+
 
 
       # Limit to max_per_image detections *over all classes*
@@ -270,13 +282,15 @@ if __name__ == '__main__':
       misc_toc = time.time()
       nms_time = misc_toc - misc_tic
 
-      sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s   \r' \
-          .format(i + 1, num_images, detect_time, nms_time))
+      sys.stdout.write('im_detect: {:d}/{:d} {:.3f}s {:.3f}s  recall {:.3f}% prescion {:.3f}% \r' \
+          .format(i + 1, num_images, detect_time, nms_time, total_TP / float(total_gt_box + 0.0001) * 100, total_TP / float(total_pred_box + 0.0001) * 100))
       sys.stdout.flush()
 
       if vis:
-          cv2.imwrite('../demo/output/' + os.path.basename(data[4][0]), im2show)
-          pdb.set_trace()
+          #cv2.imwrite('../demo/output/' + os.path.basename(data[4][0]), im2show)
+          #pdb.set_trace()
+          plt.imshow(cv2.cvtColor(im2show, cv2.COLOR_BGR2RGB))
+          plt.show()
           #cv2.imshow('test', im2show)
           #cv2.waitKey(0)
 

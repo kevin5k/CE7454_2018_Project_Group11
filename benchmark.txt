@@ -1,0 +1,44 @@
+test: 
+train set:
+epoch 1:
+recall 44.682% prescion 44.921%  0.4
+
+epoch 2:
+recall 54.298% prescion 36.698% 0.4
+recall 52.567% prescion 41.745% 0.5
+recall 51.881% prescion 48.063% 0.6
+recall 48.520% prescion 53.928% 0.7
+recall 46.291% prescion 64.590% 0.8
+
+epoch 3:
+recall 62.588% prescion 46.060% 0.4
+recall 61.992% prescion 51.696% 0.5
+recall 61.706% prescion 57.362% 0.6
+recall 59.769% prescion 63.839% 0.7
+recall 56.942% prescion 69.062% 0.8
+
+
+epoch 4:
+recall 64.784% prescion 52.534% 0.4
+recall 65.768% prescion 57.600% 0.5
+recall 64.194% prescion 62.454% 0.6
+recall 65.980% prescion 67.508% 0.7
+recall 58.801% prescion 70.614% 0.8
+
+
+epoch 5:
+recall 66.227% prescion 52.885% 0.4
+recall 67.657% prescion 57.153% 0.5
+recall 66.626% prescion 61.111% 0.6
+recall 65.228% prescion 66.391% 0.7
+recall 62.677% prescion 70.738% 0.8
+
+test set:
+
+epoch 5:
+
+recall 65.245% prescion 59.546% 0.6
+recall 63.930% prescion 65.878% 0.7
+recall 61.702% prescion 69.949% 0.8
+
+
