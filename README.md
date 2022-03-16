@@ -1,4 +1,4 @@
-# A Faster RCNN implementation for Kaggle ships localization
+# A Faster RCNN implementation for Kaggle ships localization (A group project for CE7454) 
 
 
 ## Introduction
@@ -8,7 +8,7 @@ Dataset are obtained from Airbus Ship Detection Challenge with segmentation labe
 
 For the phase 1 of the project, we train a VGG with normlization and resnet to classify a image to has ship and no ship to classes. This phase help us to evaluate the learning capability of the base network.
 
-In the phase 2, base on the base model we buid our own model on top of a faster-rcnn project from a faster-rcnn project at https://github.com/jwyang/faster-rcnn.pytorch.git. to localize the ships
+In the phase 2, base on the base model we buid our own model on top of a faster-rcnn project from a faster-rcnn project at https://github.com/jwyang/faster-rcnn.pytorch.git to localize the ships.
 
 ### Tested environment
 
@@ -38,7 +38,7 @@ For just 1 epoch
 The VGG model can achieve 91.5% accuracy 
 The Resnet model can achieve 92.2% accuracy
 
-Because VGG comsume lesser memory, and perform almost the same, we choose VGG as our base in the next phase
+Because VGG consumes lesser memory, and perform almost the same, we choose VGG as our base in the phase 2.
 
 ### Pretrained Model
 
